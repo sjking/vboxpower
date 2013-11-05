@@ -13,8 +13,10 @@
 
 const int BUF_SIZE = 256;
 const char SEPARATOR = ':';
-const char *STOP_SCRIPT = "/usr/local/bin/stopvm.sh";
-const char *START_SCRIPT = "/usr/local/bin/startvm.sh";
+//const char *STOP_SCRIPT = "/usr/local/bin/stopvm.sh";
+//const char *START_SCRIPT = "/usr/local/bin/startvm.sh";
+const char *STOP_SCRIPT = "/home/vboxuser/bin/vboxpower/stopvm.sh";
+const char *START_SCRIPT = "/home/vboxuser/bin/vboxpower/startvm.sh";
 
 // return buffer containing contents of command, and length of the string
 void getInfoVMs( char* buf, bool on ); 
@@ -37,9 +39,13 @@ int main( int argc, char *argv[] )
         getInfoVMs( buf, true );
         on = true;
     }
-    if ( strcmp(cmd, "off") == 0 ) {
+    else if ( strcmp(cmd, "off") == 0 ) {
         getInfoVMs( buf, false );
         off = true;
+    }
+    else {  
+        printf("Usage: %s on|off\n", argv[0]);
+        return 1;
     }
 
     // shutdown or power up the VMs
@@ -47,9 +53,11 @@ int main( int argc, char *argv[] )
         getVMs( buf, vms );
         if (on) {
             executePower( vms, true );
+//            printf("\nvms: %s\n", vms);
         }
         if (off) {
             executePower( vms, false );
+//            printf("vms: %s\n", vms);
         }
     }
 
@@ -65,6 +73,7 @@ void executePower( char* vms, bool on )
 
     // call the script to poweroff each VM as a separate process
     while ( (token = strsep(&vms, DELIM) ) != NULL) {
+//        printf("token: *%s*\n", token);
         pid = fork();
         if (pid == -1) {
             perror("Cannot fork");
@@ -91,11 +100,11 @@ void executePower( char* vms, bool on )
             }
             break;
         }
-    }
+    } 
     while ((wpid = wait(&status)) > 0) {  // keep waiting for all children
         char *msg = on ? "on." : "off.";
-        printf("VM \"%s\" has been powered %s", token, msg);
-    }
+        if (token != NULL) printf("VM \"%s\" has been powered %s", token, msg);
+    }  
 }
 
 void getVMs( char* buf, char* vms ) 
