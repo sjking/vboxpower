@@ -15,8 +15,6 @@ const int BUF_SIZE = 256;
 const char SEPARATOR = ':';
 const char *STOP_SCRIPT = "/usr/local/bin/stopvm.sh";
 const char *START_SCRIPT = "/usr/local/bin/startvm.sh";
-//const char *STOP_SCRIPT = "/home/vboxuser/bin/vboxpower/stopvm.sh";
-//const char *START_SCRIPT = "/home/vboxuser/bin/vboxpower/startvm.sh";
 
 // return buffer containing contents of command, and length of the string
 void getInfoVMs( char* buf, bool on ); 
@@ -26,6 +24,7 @@ void getVMs( char* buf, char* vms ); // returns ':' seperated list of running VM
 int main( int argc, char *argv[] )
 {
     if (argc != 2) {
+        printf("Usage: %s on|off\n", argv[0]);
         return 1;
     }
     char *cmd = argv[1];
@@ -39,7 +38,6 @@ int main( int argc, char *argv[] )
         on = true;
     }
     if ( strcmp(cmd, "off") == 0 ) {
-//        printf("off\n");
         getInfoVMs( buf, false );
         off = true;
     }
@@ -47,7 +45,6 @@ int main( int argc, char *argv[] )
     // shutdown or power up the VMs
     if ( buf != NULL ) {
         getVMs( buf, vms );
-//        printf("vms: %s", vms);
         if (on) {
             executePower( vms, true );
         }
@@ -55,9 +52,6 @@ int main( int argc, char *argv[] )
             executePower( vms, false );
         }
     }
-
-    // keep running indefinitely if on job
-//    while (on) { sleep (3600); }
 
     return 0;
 }
@@ -78,7 +72,6 @@ void executePower( char* vms, bool on )
         else if (pid == 0) {
             // child process, execute script
             if (on) {
- //               printf("starting VM %s", token);
                 if ( execl(START_SCRIPT, START_SCRIPT,  token, (char *)0) == -1 ) {
                     char *err = strcat("Cannot execute script ", START_SCRIPT);
                     perror(err);
@@ -88,7 +81,6 @@ void executePower( char* vms, bool on )
                 }
             }
             else {
- //               printf("stopping VM %s", token);
                 if ( execl(STOP_SCRIPT, STOP_SCRIPT,  token, (char *)0) == -1 ) {
                     char *err = strcat("Cannot execute script ", STOP_SCRIPT);
                     perror(err);
@@ -104,7 +96,6 @@ void executePower( char* vms, bool on )
         char *msg = on ? "on." : "off.";
         printf("VM \"%s\" has been powered %s", token, msg);
     }
-    //wpid = wait(&status);
 }
 
 void getVMs( char* buf, char* vms ) 
@@ -147,9 +138,7 @@ void getInfoVMs( char* buf, bool on )
             perror("Error executing command"); // error, could not open pipe
         else {
             while (fgets(pipebuf, sizeof(pipebuf), in) != NULL ) {
-                //printf ("Output: %s", pipebuf);
                 strcat(buf, pipebuf);
-                //printf ("length of buf: %zu", strlen(buf));
             }
         }
         pclose(in);
@@ -159,9 +148,7 @@ void getInfoVMs( char* buf, bool on )
             perror("Error executing command"); // error, could not open pipe
         else {
             while (fgets(pipebuf, sizeof(pipebuf), in) != NULL ) {
-                //printf ("Output: %s", pipebuf);
                 strcat(buf, pipebuf);
-                //printf ("length of buf: %zu", strlen(buf));
             }
         }
         pclose(in);
